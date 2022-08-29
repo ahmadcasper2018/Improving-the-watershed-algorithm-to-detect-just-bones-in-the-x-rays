@@ -16,16 +16,19 @@ padded_image = image_padding(original)
 integral = make_integeral(padded_image)
 averaged_image = avg_integral(padded_image, integral)
 
-hell , l ,u = auto_canny(averaged_image)
+edged_image , l ,u = auto_canny(averaged_image)
+edged_image = edged_image.astype('uint8')
 
-edge = cv2.Canny(averaged_image, 10, 150)
+edge = cv2.Canny(averaged_image, l, u)
 
 # print(averaged_image.shape)
 # lolo = auto_canny(averaged_image)
 # integral_image = integral / integral.max()
-cv2.imshow('original',edge)
+cv2.imshow('original',edged_image)
 cv2.waitKey(0)
 #
+cv2.imshow('original',edge)
+cv2.waitKey(0)
 
 # plt.imshow(auto_canny(averaged_image))
 # plt.show()

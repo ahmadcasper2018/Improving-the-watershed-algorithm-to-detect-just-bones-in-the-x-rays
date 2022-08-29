@@ -12,53 +12,42 @@ def gaussian_kernel(size, sigma=1):
 
 
 def sobel_filters(img):
-
     sobel_x = cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=3)
     sobel_y = cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=3)
-    sobel =  cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=3)
+    sobel = cv2.Sobel(src=img, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=3)
     theta = np.arctan2(sobel_y, sobel_x)
 
     return (sobel, theta)
 
 
-def non_max_suppression(img, D):
-    M, N = img.shape
-    Z = np.zeros((M, N), dtype=np.int32)
-    angle = D * 180. / np.pi
-    angle[angle < 0] += 180
+def non_max_suppression(Gm, Gd):
+    Gd = np.rad2deg(Gd)
+    num_rows, num_cols = Gm.shape[0], Gm.shape[1]
+    Gd_bins = 45 * (np.round(Gd / 45))
 
-    for i in range(1, M - 1):
-        for j in range(1, N - 1):
-            try:
-                q = 255
-                r = 255
+    G_NMS = np.zeros(Gm.shape)
 
-                # angle 0
-                if (0 <= angle[i, j] < 22.5) or (157.5 <= angle[i, j] <= 180):
-                    q = img[i, j + 1]
-                    r = img[i, j - 1]
-                # angle 45
-                elif (22.5 <= angle[i, j] < 67.5):
-                    q = img[i + 1, j - 1]
-                    r = img[i - 1, j + 1]
-                # angle 90
-                elif (67.5 <= angle[i, j] < 112.5):
-                    q = img[i + 1, j]
-                    r = img[i - 1, j]
-                # angle 135
-                elif (112.5 <= angle[i, j] < 157.5):
-                    q = img[i - 1, j - 1]
-                    r = img[i + 1, j + 1]
+    neighbor_a, neighbor_b = 0., 0.
 
-                if (img[i, j] >= q) and (img[i, j] >= r):
-                    Z[i, j] = img[i, j]
-                else:
-                    Z[i, j] = 0
+    for r in range(1, num_rows - 1):
+        for c in range(1, num_cols - 1):
+            angle = Gd_bins[r, c]
+            if angle == 180. or angle == -180. or angle == 0.:
+                neighbor_a, neighbor_b = Gm[r + 1, c], Gm[r - 1, c]
+            elif angle == 90. or angle == -90.:
+                neighbor_a, neighbor_b = Gm[r, c - 1], Gm[r, c + 1]
+            elif angle == 45. or angle == -135.:
+                neighbor_a, neighbor_b = Gm[r + 1, c + 1], Gm[r - 1, c - 1]
+            elif angle == -45. or angle == 135.:
+                neighbor_a, neighbor_b = Gm[r - 1, c + 1], Gm[r + 1, c - 1]
+            else:
+                print("error")
+                return
 
-            except IndexError as e:
-                pass
+            if Gm[r, c] > neighbor_a and Gm[r, c] > neighbor_b:
+                G_NMS[r, c] = Gm[r, c]
 
-    return Z
+    return G_NMS
 
 
 # def threshold(img, lowThresholdRatio=0.05, highThresholdRatio=0.09):
@@ -109,10 +98,14 @@ def auto_canny(image, sigma=0.33):
     upper = int(min(255, (1.0 + sigma) * v))
     kernal = gaussian_kernel(3)
     identity = cv2.filter2D(src=image, ddepth=-1, kernel=kernal)
+    # cv2.imshow('gauss',identity)
+    # cv2.waitKey(0)
     edges, theta = sobel_filters(identity)
-    supression = non_max_suppression(edges,theta)
-    final = hysteresis(supression,lower,upper)
+    # cv2.imshow('edges', edges)
+    # cv2.waitKey(0)
+    supression = non_max_suppression(edges, theta)
+    final = hysteresis(edges, lower, upper)
     # edged = cv2.Canny(image, lower, upper)
 
     # return the edged image
-    return final , lower , upper
+    return final, lower, upper
