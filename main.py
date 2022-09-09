@@ -8,30 +8,39 @@ from average_filter import (
     avg_integral,
     make_integeral
 )
-from canny import auto_canny
+from canny import  gaussian_kernel
+from watershed import watershade_algorithm
 
 """Apply noise filtering with image integeral"""
-original = cv2.imread(r'C:\Users\casper\Desktop\project alpha\dataset\Lower Extremities-Knee Lat-1_25_2016-5_40_54 PM-720.JPEG')
+original = cv2.imread(r'C:\Users\casper\Desktop\project alpha\dataset\Lower Extremities-Femur AP-1_25_2016-5_34_07 PM-107.JPEG')
 padded_image = image_padding(original)
 integral = make_integeral(padded_image)
 averaged_image = avg_integral(padded_image, integral)
-#
-# edged_image , l ,u = auto_canny(averaged_image)
-# edged_image = edged_image.astype('uint8')
+kernal = gaussian_kernel(size=3)
+identity = cv2.filter2D(src=averaged_image, ddepth=-1, kernel=kernal)
+
+
+"""ِApply watershade algorithm"""
+watershade_algorithm(identity,averaged_image)
+
+
+
+# cv2.imshow('ret',identity)
+# cv2.waitKey(0)
+
+
+# auto detect thresholds
 ret3, otsu = cv2.threshold(averaged_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-# apply automatic Canny edge detection using the computed median
-lower = otsu.std() * 0.3
-upper = otsu.std()
-edge = cv2.Canny(averaged_image, lower, upper)
+lower = otsu.std() * 0.1
+upper = otsu.std() * 0.7
 
-# print(averaged_image.shape)
-# lolo = auto_canny(averaged_image)
-# integral_image = integral / integral.max()
-# cv2.imshow('original',edged_image)
-# cv2.waitKey(0)
-#
-# cv2.imshow('original',edge)
-# cv2.waitKey(0)
 
-plt.imshow(edge,cmap='binary')
-plt.show()
+
+# apply canny detection
+edges = cv2.Canny(identity, lower, upper)
+
+
+
+
+
+
