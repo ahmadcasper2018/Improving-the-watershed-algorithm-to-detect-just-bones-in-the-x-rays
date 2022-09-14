@@ -18,4 +18,11 @@ def gaussian_kernel(size, sigma=1):
 
 
 
+def color_thr(s_img, l_img, s_threshold = (0,255), l_threshold = (0,255)):
+    s_binary = np.zeros_like(s_img).astype(np.uint8)
+    s_binary[(s_img > s_threshold[0]) & (s_img <= s_threshold[1])] = 1
+    l_binary = np.zeros_like(l_img).astype(np.uint8)
+    l_binary[(l_img > l_threshold[0]) & (l_img <= l_threshold[1])] = 1
+    col = ((s_binary == 1) | (l_binary == 1))
+    return col
 

@@ -35,6 +35,5 @@ def watershade_algorithm(gray, image):
         total_area += area
         cv2.drawContours(image, [c], -1, (36, 255, 12), 4)
 
-    print(total_area)
-    cv2.imshow('image', image)
-    cv2.waitKey()
+    return image
+
