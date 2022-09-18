@@ -56,7 +56,7 @@ for i in range(0, nlabels - 1):
         result[labels == i + 1] = 255
 
 
-sahded = watershade_algorithm(result,identity)
+sahded = watershade_algorithm(result)
 
 # apply canny detection
 edges2 = cv2.Canny(sahded, 255, 255)
